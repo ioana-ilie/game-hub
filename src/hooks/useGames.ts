@@ -3,16 +3,16 @@ import apiClient from "../services/api-client";
 import { CanceledError } from "axios";
 
 export interface Platform {
-  id: number,
-  name: string,
-  slug: string
+  id: number;
+  name: string;
+  slug: string;
 }
 
 export interface Game {
   id: number;
   name: string;
-  background_image: string,
-  parent_platforms: {platform: Platform}[], // array of obj where each obj has a property platform of type platform
+  background_image: string;
+  parent_platforms: { platform: Platform }[]; // array of obj where each obj has a property platform of type platform
   metacritic: number;
 }
 
@@ -24,16 +24,22 @@ interface FetchGamesResponse {
 const useGames = () => {
   const [games, setGames] = useState<Game[]>([]);
   const [error, setError] = useState("");
+  const [isLoading, setLoading] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
 
+    setLoading(true);
     apiClient
       .get<FetchGamesResponse>("/games", { signal: controller.signal })
-      .then((res) => setGames(res.data.results))
+      .then((res) => {
+        setGames(res.data.results);
+        setLoading(false);
+      })
       .catch((err) => {
         if (err instanceof CanceledError) return;
         setError(err.message);
+        setLoading(false);
       });
 
     return () => {
@@ -41,7 +47,7 @@ const useGames = () => {
     };
   }, []);
 
-  return { games, error };
+  return { games, error, isLoading };
 };
 
 export default useGames;
